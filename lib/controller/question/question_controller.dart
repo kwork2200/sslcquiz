@@ -49,10 +49,27 @@ class QuestionController extends GetxController {
 
     getData();
   }
+  
+  @override
+  void onReady() {
+    super.onReady();
+    ever(Get.routing.obs, (_) {
+      if (Get.currentRoute == AppRoutes.questionScreen && !fromFavourite.value) {
+        refreshFavoriteStates();
+      }
+    });
+  }
+  
+  Future<void> refreshFavoriteStates() async {
+    if (!fromFavourite.value && questionList.isNotEmpty) {
+      final db = DatabaseHelper();
+      await _syncFavoriteStates(db);
+      update();
+    }
+  }
 
   @override
   void onClose() {
-    // Cancel timer when controller is disposed
     cancelTimer();
     super.onClose();
   }
@@ -61,8 +78,6 @@ class QuestionController extends GetxController {
 
   getData() async {
     isLoading.value = true;
-
-    // Reset all data when loading fresh
     questionList.clear();
     index.value = 0;
     rightAnswer.value = 0;
@@ -74,13 +89,18 @@ class QuestionController extends GetxController {
 
     await setTitle();
     await _loadData();
+    
+    if (!fromFavourite.value && questionList.isNotEmpty) {
+      final db = DatabaseHelper();
+      await _syncFavoriteStates(db);
+    }
+    
     isLoading.value = false;
     startTimer();
     update();
   }
 
   setTitle() async {
-    print("fromFavourite==${fromFavourite.value}");
 
     if (!fromFavourite.value) {
       // Always fetch fresh medium value from SharedPreferences
@@ -91,7 +111,7 @@ class QuestionController extends GetxController {
 
       title.value = '$medium,$t,${lesson.value}';
 
-      print("🔄 Medium loaded: $medium, Subject: ${subject.value}, Lesson: ${lesson.value}");
+      print(" Medium loaded: $medium, Subject: ${subject.value}, Lesson: ${lesson.value}");
 
       if(questionList.isNotEmpty) {
         QuestionData questionData = questionList[index.value];
@@ -103,7 +123,6 @@ class QuestionController extends GetxController {
 
         print("selectedAnswerIndex.value==${selectedAnswerIndex.value}");
       }
-      //question
     } else {
       if (questionList.isNotEmpty) {
         QuestionData questionData = questionList[index.value];
@@ -115,10 +134,6 @@ class QuestionController extends GetxController {
         String sub = firstCharCaps(subjectArray[1]);
 
         title.value = '$medium,$sub,${lesson.value}';
-
-
-
-
       }
     }
   }
@@ -137,10 +152,25 @@ class QuestionController extends GetxController {
       setTitle();
     } else {
       questionList = await db.getAllItems(subject.value, lesson.value);
+      await _syncFavoriteStates(db);
     }
 
     if(questionList.isEmpty){
       Get.back();
+    }
+  }
+  
+  Future<void> _syncFavoriteStates(DatabaseHelper db) async {
+    List<QuestionData> favorites = await db.getFavouritesByFilter(
+      medium: medium,
+      tableName: subject.value,
+      lesson: lesson.value,
+    );
+    Set<int> favoriteIds = favorites
+        .map((fav) => fav.refId ?? 0)
+        .toSet();
+    for (var question in questionList) {
+      question.favourite = favoriteIds.contains(question.id ?? 0);
     }
   }
 
@@ -153,21 +183,38 @@ class QuestionController extends GetxController {
 
     if (fromFavourite.value) {
       if (fav.toLowerCase() == "true") {
-        db.removeFavourite(questionData.id ?? 0);
-        questionList.remove(questionData);
+        await db.removeFavouriteByRefId(
+          questionData.refId ?? 0,
+          questionData.medium,
+          questionData.tableName,
+          questionData.lesson,
+        );
+        await db.updateFavourite(
+          questionData.tableName,
+          questionData.refId ?? 0,
+          "false",
+        );
+        questionList.removeAt(index.value);
+        if (questionList.isEmpty) {
+          Get.back();
+          return;
+        }
+        if (index.value >= questionList.length) {
+          index.value = questionList.length - 1;
+        }
+        clearAnswer();
+        setTitle();
       }
     } else {
-
-
-
       if (fav.toLowerCase() == "true") {
-        db.deleteFavourite(
+        await db.deleteFavourite(
           questionData.id ?? 0,
           medium,
           subject.value,
           lesson.value,
         );
       } else {
+
         print("fav===tre");
 
         var favMap = {
@@ -179,15 +226,8 @@ class QuestionController extends GetxController {
           "option2": questionData.option2,
           "option3": questionData.option3,
           "option4": questionData.option4,
-          // "image_option1": questionData.imageOption1,
-          // "image_option2": questionData.imageOption2,
-          // "image_option3": questionData.imageOption3,
-          // "image_option4": questionData.imageOption4,
-          // "image_question": questionData.imageQuestion,
           "correct": questionData.correctAnswer,
           "score": questionData.score,
-         /* "ref_id": questionData.id,
-          "favourite": true,*/
           "ref_id": questionData.id ?? 0,
           "favourite": 1,
         };
@@ -212,9 +252,8 @@ class QuestionController extends GetxController {
           favMap["image_question"] = questionData.imageQuestion;
         }
 
-        db.insertFavourite(favMap);
+        await db.insertFavourite(favMap);
       }
-
       await db.updateFavourite(
         subject.value,
         questionData.id ?? 0,

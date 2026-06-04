@@ -140,11 +140,16 @@ class DatabaseHelper {
 
 
   Future<void> _ensureColumns(Database db) async {
-    // ── favourite table ──
     var favCols = await db.rawQuery('PRAGMA table_info(favourite)');
+    for (var col in favCols) {}
+    bool hasIdColumn = favCols.any((c) => c['name'] == 'id');
+    
+    if (!hasIdColumn) {
+      print("Favourite table has no 'id' column - using ref_id for operations");
+    }
+    
     if (!favCols.any((c) => c['name'] == 'ref_id')) {
       await db.execute('ALTER TABLE favourite ADD COLUMN ref_id INTEGER DEFAULT 0');
-      print("✅ Added ref_id to favourite");
     }
 
     // ── score table ──
@@ -223,6 +228,45 @@ class DatabaseHelper {
     }
     return [];
   }
+  
+  Future<List<QuestionData>> getFavouritesByFilter({
+    String? medium,
+    String? tableName,
+    String? lesson,
+  }) async {
+    final db = await database;
+    
+    List<String> whereConditions = [];
+    List<dynamic> whereArgs = [];
+    
+    if (medium != null) {
+      whereConditions.add('medium = ?');
+      whereArgs.add(medium);
+    }
+    if (tableName != null) {
+      whereConditions.add('tb_name = ?');
+      whereArgs.add(tableName);
+    }
+    if (lesson != null) {
+      whereConditions.add('lesson = ?');
+      whereArgs.add(lesson);
+    }
+    
+    String? whereClause = whereConditions.isNotEmpty 
+        ? whereConditions.join(' AND ') 
+        : null;
+    
+    List<Map<String, dynamic>> lis = await db.query(
+      "favourite",
+      where: whereClause,
+      whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
+    );
+    
+    if (lis.isNotEmpty) {
+      return lis.map((json) => QuestionData.fromJson(json)).toList();
+    }
+    return [];
+  }
 
   Future<List<ScoreData>> getScoreHistory() async {
     final db = await database;
@@ -293,16 +337,36 @@ class DatabaseHelper {
         whereArgs: [id,medium,lesson,subject], // Update this field
     );
   }
-  Future<void> removeFavourite(
-      int id,
+  Future<void> removeFavouriteById(
+      int favouriteTableId,
 
+      ) async {
+    final db = await database;
+    var favCols = await db.rawQuery('PRAGMA table_info(favourite)');
+    bool hasIdColumn = favCols.any((c) => c['name'] == 'id');
+    
+    if (hasIdColumn && favouriteTableId > 0) {
+      await db.delete(
+        "favourite",
+        where: 'id = ? ',
+        whereArgs: [favouriteTableId],
+      );
+    } else {
+      print(" Cannot delete favourite by id=$favouriteTableId (table has no id column or invalid id)");
+    }
+  }
+  
+  Future<void> removeFavouriteByRefId(
+      int refId,
+      String medium,
+      String tableName,
+      String lesson,
       ) async {
     final db = await database;
     await db.delete(
       "favourite",
-
-      where: 'id = ? ',
-      whereArgs: [id], // Update this field
+      where: 'ref_id = ? AND medium = ? AND tb_name = ? AND lesson = ?',
+      whereArgs: [refId, medium, tableName, lesson],
     );
   }
   Future<void> deleteQuiz() async {

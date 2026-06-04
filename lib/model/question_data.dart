@@ -74,8 +74,11 @@ class QuestionData {
 
     bool fav = false;
 
-    if (json['favourite'] != null && json["favourite"].toString().toLowerCase() == ("true")) {
-      fav = true;
+    if (json['favourite'] != null) {
+      var favValue = json['favourite'];
+      if (favValue.toString().toLowerCase() == "true" || favValue == 1 || favValue == "1") {
+        fav = true;
+      }
     }
     print(json);
     print(json['image_question']);
