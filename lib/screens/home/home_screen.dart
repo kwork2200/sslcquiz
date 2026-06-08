@@ -275,23 +275,23 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-
-          ListTile(
-            leading: Icon(
-              Icons.star_rate,
-              color: AppColors.blackColor,
-              size: 20.h,
-            ),
-            title: CommonText(
-              text: TextData.rateUs,
-              fontSize: AppDimensions.fontXMedium,
-              color: AppColors.blackColor,
-              fontWeight: AppFontWeights.bold,
-            ),
-            onTap: () {
-              rateApp(); // Close drawer
-            },
-          ),
+          //
+          // ListTile(
+          //   leading: Icon(
+          //     Icons.star_rate,
+          //     color: AppColors.blackColor,
+          //     size: 20.h,
+          //   ),
+          //   title: CommonText(
+          //     text: TextData.rateUs,
+          //     fontSize: AppDimensions.fontXMedium,
+          //     color: AppColors.blackColor,
+          //     fontWeight: AppFontWeights.bold,
+          //   ),
+          //   onTap: () {
+          //     rateApp(); // Close drawer
+          //   },
+          // ),
           ListTile(
             leading: Icon(
               Icons.policy,
