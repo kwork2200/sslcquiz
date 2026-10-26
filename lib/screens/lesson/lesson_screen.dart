@@ -3,15 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sslcquiz/controller/lesson/lesson_controller.dart';
 import 'package:sslcquiz/controller/subject/subject_controller.dart';
-import 'package:sslcquiz/screens/subject/subject_screen.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../model/lesson_model.dart';
 import '../../routes/app_pages.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
+import '../../utils/functions.dart';
 import '../../widgets/common_app_bar.dart';
 import '../../widgets/common_text.dart';
 import '../../widgets/constant_widget.dart';
@@ -25,6 +28,9 @@ class LessonScreen extends StatefulWidget {
 }
 
 class _LessonScreenState extends State<LessonScreen> {
+  /// Show a native ad after every 2 lessons
+  static const int _adFrequency = 2;
+
   // Use Get.find() instead of Get.put() since binding will create the controller
   late LessonController lessonController;
 
@@ -38,14 +44,9 @@ class _LessonScreenState extends State<LessonScreen> {
   @override
   Widget build(BuildContext context) {
     setStatusBar();
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SubjectScreen(),));
-        // Get.back();
-        // Get.replace(AppRoutes.subjectScreen);
-        return true;
-      },
+    return AdOnBackWrapper(
       child: Scaffold(
+        bottomNavigationBar: const HybridBannerAdWidget(),
         body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -64,10 +65,6 @@ class _LessonScreenState extends State<LessonScreen> {
                 backgroundColor: Theme.of(context).primaryColor,
                 title: TextData.homeTitle,
                 textColor: AppColors.backGroundColor,
-                back: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => SubjectScreen(),));
-                  // Get.replace(AppRoutes.subjectScreen);
-                },
               ).paddingSymmetric(horizontal: 15.h),
 
               Expanded(
@@ -111,12 +108,33 @@ class _LessonScreenState extends State<LessonScreen> {
 
                     return ListView.builder(
                       padding: EdgeInsets.symmetric(horizontal: 15.h),
-                      itemCount: lessons.length,
+                      itemCount:
+                          lessons.length + (lessons.length ~/ _adFrequency),
                       itemBuilder: (context, index) {
-                        Lesson e = lessons[index];
+                        final bool isAdPosition =
+                            (index + 1) % (_adFrequency + 1) == 0;
+                        final int adIndex = index ~/ (_adFrequency + 1);
 
+                        if (isAdPosition &&
+                            adIndex < lessons.length ~/ _adFrequency) {
+                          return Padding(
+                            padding: EdgeInsets.only(top: 15.h),
+                            child: HybridNativeAdWidget(
+                              height: 200.h,
+                              smallHeight: 80.h,
+                              adKey: 'lesson_native_$adIndex',
+                              margin: EdgeInsets.zero,
+                            ),
+                          );
+                        }
 
-                        return _buildMenuItem(e.image, index, context, () async {
+                        // Ad slots are extra list positions, so map back to the
+                        // real lesson index
+                        final int itemIndex =
+                            index - (index ~/ (_adFrequency + 1));
+                        Lesson e = lessons[itemIndex];
+
+                        return _buildMenuItem(e.image, itemIndex, context, () async {
                           await AppData().setLesson(e.table);
                           Get.toNamed(
                             AppRoutes.questionScreen,
@@ -176,6 +194,7 @@ bool isEnglishSubject=false;
 
         return GestureDetector(
           onTap: () async {
+            await showAdBeforeNavigation(context);
             function();
           },
 

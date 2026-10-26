@@ -14,11 +14,15 @@ import 'package:sslcquiz/screens/setting/terms_condition.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../routes/app_pages.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
+import '../../utils/functions.dart';
 import '../../widgets/common_text.dart';
 import '../../widgets/constant_widget.dart';
 import '../../widgets/spacing_widget.dart';
@@ -50,6 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
         key: _scaffoldKey,
 
         drawer: _buildDrawer(context),
+
+        bottomNavigationBar: const HybridBannerAdWidget(),
 
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Container(
@@ -198,8 +204,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
             
+                Spacing.height(20),
+
+                HybridNativeAdWidget(
+                  height: 200.h,
+                  smallHeight: 80.h,
+                  adKey: 'home_native_top',
+                  margin: EdgeInsets.zero,
+                ),
+
                 Spacing.height(30),
-            
+
                 CommonText(
                   text: TextData.yourStudies,
                   fontSize: AppDimensions.fontXMedium,
@@ -211,18 +226,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildMenuItem(TextData.english, context, false,TextData.englishMedium),
                 Spacing.height(20),
                 _buildMenuItem(TextData.tamil, context, true,TextData.tamilMedium1 ),
-                // Spacing.height(20),
-                // _buildMenuItem(TextData.socialHistory, context, true),
-            
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   crossAxisAlignment: CrossAxisAlignment.center,
-                //   children: [
-                //     _buildMenuItem("btn_tamil_medium.png", context, true),
-                //     Spacing.width(8),
-                //     _buildMenuItem("btn_english_medium.png", context, false),
-                //   ],
-                // ),
+
+                Spacing.height(20),
+
+                HybridNativeAdWidget(
+                  height: 200.h,
+                  smallHeight: 80.h,
+                  adKey: 'home_native_bottom',
+                  margin: EdgeInsets.zero,
+                ),
               ],
             ),
           ),
@@ -304,7 +316,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.blackColor,
               fontWeight: AppFontWeights.bold,
             ),
-            onTap: () {
+            onTap: () async {
+              await showAdBeforeNavigation(context);
               Get.to(TermsAndConditionsScreen());
             },
           ),
@@ -320,8 +333,9 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.blackColor,
               fontWeight: AppFontWeights.bold,
             ),
-            onTap: () {
-              Get.to(ContactUsScreen());
+            onTap: () async {
+              await showAdBeforeNavigation(context);
+              Get.to(PrivacyPolicyScreen());
 
             },
           ), ListTile(
@@ -336,7 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.blackColor,
               fontWeight: AppFontWeights.bold,
             ),
-            onTap: () {
+            onTap: () async {
+              await showAdBeforeNavigation(context);
               Get.to(AboutUsScreen());
             },
           ),
@@ -353,7 +368,8 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppColors.blackColor,
               fontWeight: AppFontWeights.bold,
             ),
-            onTap: () {
+            onTap: () async {
+              await showAdBeforeNavigation(context);
               Get.toNamed(AppRoutes.settingScreen)!.then((value) {
                 setState(() {
 
@@ -408,6 +424,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<bool> _onBackPressed() async {
     // SystemNavigator.pop();
 
+    // Show interstitial ad (back frequency) before exit dialog
+    await showAdOnBackNavigation(context);
+    if (!mounted) return false;
+
     showDialog(
       context: context,
       barrierDismissible: false, // Prevent dismissing on tap outside (optional)
@@ -428,6 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMenuItem(String button, BuildContext context, bool fromTamil,String title) {
     return GestureDetector(
       onTap: () async {
+        await showAdBeforeNavigation(context);
         if (button.contains(TextData.socialHistory)) {
           Get.toNamed(AppRoutes.historyScreen);
         } else {

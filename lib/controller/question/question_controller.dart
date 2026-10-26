@@ -17,6 +17,7 @@ import 'package:sslcquiz/utils/text_data.dart';
 import 'package:vibration/vibration.dart';
 import 'package:intl/intl.dart';
 
+import '../../ads/interstitial_ad_manager.dart';
 import '../../data/database_helper.dart';
 import '../../model/lesson_model.dart';
 import '../../model/question_data.dart';
@@ -301,6 +302,9 @@ class QuestionController extends GetxController {
     int id = await db.insertScoreData(map);
     await AppData().saveQuizList(questionList);
     print("id===${id}");
+
+    // Navigation se pehle interstitial ad
+    await InterstitialAdManager.instance.showAdIfAvailable();
 
     Get.offNamed(AppRoutes.scoreScreen, arguments: {
       'id': id,

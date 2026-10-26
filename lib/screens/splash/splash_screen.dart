@@ -6,6 +6,7 @@ import 'package:sslcquiz/screens/home/home_screen.dart';
 import 'package:sslcquiz/screens/home/name_dialog.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/app_open_ad_manager.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../data/database_helper.dart';
@@ -47,11 +48,39 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // Wait 3 seconds for splash screen
     await Future.delayed(Duration(seconds: 3));
-    
+
+    if (!mounted) return;
+
+    // Wait until the app open ad finishes loading (max ~5s). Without this the
+    // ad is skipped while still loading and never shown on cold start.
+    int attempts = 0;
+    while (AppOpenAdManager.instance.isLoading && attempts < 10) {
+      print('⏳ Waiting for app open ad to load... attempt $attempts');
+      await Future.delayed(const Duration(milliseconds: 500));
+      attempts++;
+    }
+
+    if (!mounted) return;
+
+    print('📺 App open ad loading complete, showing ad now...');
+
+    // Show app open ad right after splash, then continue into the app
+    AppOpenAdManager.instance.showAdIfAvailable(
+      onAdDismissed: () {
+        _continueAfterSplash();
+      },
+    );
+  }
+
+  Future<void> _continueAfterSplash() async {
+    if (!mounted) return;
+
     // Check if first time user
     bool isFirstTime = await AppData().getIsFirstTime();
     String name = await AppData().getStudentName();
-    
+
+    if (!mounted) return;
+
     if (isFirstTime || name.isEmpty) {
       showDialog(
         context: context,

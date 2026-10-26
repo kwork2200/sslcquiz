@@ -25,8 +25,8 @@ We are committed to creating a safe and secure learning experience. SSLC Quiz do
 Our Goal:
 To deliver high-quality, trustworthy, and easy-to-use learning tools that empower students to succeed in their SSLC examinations.
 
-For more queries you can email us at: vichruth.victorious@gmail.com
-or call us on +91 79 0481 5700
+For more queries you can email us at: vaghasiyasanket36@gmail.com
+or call us on +91 97260 30303
 ''';
 
     return Scaffold(

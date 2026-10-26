@@ -58,8 +58,8 @@ We may update our Terms of Use occasionally. You are encouraged to review this p
 These terms are effective as of August 13, 2025.
 
 Inquiry / Contact:
-Email: vichruth.victorious@gmail.com
-Phone: +91 7904815700
+Email: vaghasiyasanket36@gmail.com
+Phone: +91 97260 30303
 
 These Terms of Use are provided by SSLC Quiz App.
 ''';

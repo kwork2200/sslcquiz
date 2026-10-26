@@ -6,6 +6,8 @@ import 'package:sslcquiz/controller/question/question_controller.dart';
 import 'package:sslcquiz/controller/subject/subject_controller.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../model/lesson_model.dart';
@@ -13,6 +15,7 @@ import '../../model/question_data.dart';
 import '../../routes/app_pages.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
+import '../../utils/functions.dart';
 import '../../widgets/common_app_bar.dart';
 import '../../widgets/common_button_widget.dart';
 import '../../widgets/common_text.dart';
@@ -46,7 +49,8 @@ class _QuestionScreenState extends State<QuestionScreen> {
         double progress =
             (controller.index.value+1) / (controller.questionList.length);
 
-        return Scaffold(
+        return AdOnBackWrapper(
+          child: Scaffold(
           backgroundColor: Theme.of(context).primaryColor,
 
           // appBar: CommonAppBar(
@@ -245,26 +249,32 @@ class _QuestionScreenState extends State<QuestionScreen> {
             ),
           ),
 
-          bottomNavigationBar: Obx(
-                () =>
-            !questionController.isLoading.value &&
-                questionController.questionList.isNotEmpty
-                ? CustomBottomBar(
-              onNextPressed: () => questionController.nextQuestion(),
-              onPreviousPressed: () =>
-                  questionController.previousQuestion(),
-              onPlayPressed: () => questionController.playPauseTimer(),
-              isFav:
-              questionController
-                  .questionList.length>   questionController.index.value?   questionController
-                  .questionList[questionController.index.value]
-                  .favourite ??
-                  false:false,
-              isPause: questionController.isPlay.value,
-            )
-                : SizedBox(),
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Obx(
+                    () =>
+                !questionController.isLoading.value &&
+                    questionController.questionList.isNotEmpty
+                    ? CustomBottomBar(
+                  onNextPressed: () => questionController.nextQuestion(),
+                  onPreviousPressed: () =>
+                      questionController.previousQuestion(),
+                  onPlayPressed: () => questionController.playPauseTimer(),
+                  isFav:
+                  questionController
+                      .questionList.length>   questionController.index.value?   questionController
+                      .questionList[questionController.index.value]
+                      .favourite ??
+                      false:false,
+                  isPause: questionController.isPlay.value,
+                )
+                    : SizedBox(),
+              ),
+              const HybridBannerAdWidget(),
+            ],
           ),
-        );
+        ));
       },
     );
   }
@@ -370,7 +380,8 @@ class CustomBottomBar extends StatelessWidget {
                   width: 40.h,
                   child: Center(
                     child: GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        await showAdBeforeNavigation(context);
                         Get.offAllNamed(AppRoutes.home);
                       },
                       child: Icon(

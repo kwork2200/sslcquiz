@@ -9,6 +9,9 @@ import 'package:sslcquiz/controller/subject/subject_controller.dart';
 import 'package:sslcquiz/screens/score/score_h_card.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../model/lesson_model.dart';
@@ -16,6 +19,7 @@ import '../../model/question_data.dart';
 import '../../routes/app_pages.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
+import '../../utils/functions.dart';
 import '../../widgets/common_app_bar.dart';
 import '../../widgets/common_button_widget.dart';
 import '../../widgets/common_text.dart';
@@ -42,18 +46,14 @@ class _ScoreScreenState extends State<ScoreScreen> {
   @override
   Widget build(BuildContext context) {
     scoreController.loadData();
-    return WillPopScope(
-      onWillPop: () async {
-        Get.offAllNamed(AppRoutes.lessonScreen);
-
-        return false;
-      },
+    return AdOnBackWrapper(
       child: GetBuilder(
         init: ScoreController(),
         builder: (controller) {
 
           return Scaffold(
             backgroundColor: Theme.of(context).primaryColor,
+            bottomNavigationBar: const HybridBannerAdWidget(),
             body: Container(
               width: double.infinity,
               height: double.infinity,
@@ -65,9 +65,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
                     backgroundColor: Theme.of(context).primaryColor,
                     title: "${controller.title}",
                     textColor: AppColors.backGroundColor,
-                    back: () {
-                      Get.offAllNamed(AppRoutes.lessonScreen);
-                    },
                     actions: [
                       GestureDetector(
                         child: Icon(Icons.share, color: AppColors.white),
@@ -149,6 +146,21 @@ class _ScoreScreenState extends State<ScoreScreen> {
                                       _buildMenuItem(TextData.score,controller.scoreData!.totalScore),
                                       _buildMenuItem(TextData.date,onlyDate),
 
+                                      // Native ad at the bottom of the score details
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: 15.h,
+                                          left: 15.w,
+                                          right: 15.w,
+                                        ),
+                                        child: HybridNativeAdWidget(
+                                          height: 200.h,
+                                          smallHeight: 80.h,
+                                          adKey: 'score_native_ad',
+                                          margin: EdgeInsets.zero,
+                                        ),
+                                      ),
+
                                       // Spacing.height(20),
                                       //
                                       //
@@ -188,7 +200,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
                                       children: [
                                         Expanded(
                                           child: GestureDetector(
-                                            onTap: () {
+                                            onTap: () async {
+
+                                              await showAdBeforeNavigation(context);
 
                                               Get.offNamed(
                                                 AppRoutes.questionScreen,
@@ -223,7 +237,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
                                           child: GestureDetector(
 
-                                            onTap: () {
+                                            onTap: () async {
+                                              await showAdBeforeNavigation(context);
                                               Get.offNamed(
                                                 AppRoutes.historyScreen,
                                               );

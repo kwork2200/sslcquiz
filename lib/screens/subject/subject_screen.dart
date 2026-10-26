@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:sslcquiz/controller/subject/subject_controller.dart';
-import 'package:sslcquiz/screens/home/home_screen.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../routes/app_pages.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
+import '../../utils/functions.dart';
 import '../../widgets/common_app_bar.dart';
 import '../../widgets/common_text.dart';
 import '../../widgets/constant_widget.dart';
@@ -23,6 +26,9 @@ class SubjectScreen extends StatefulWidget {
 }
 
 class _SubjectScreenState extends State<SubjectScreen> {
+  /// Show a native ad after every 2 subject items
+  static const int _adFrequency = 2;
+
   // Use Get.find() instead of Get.put() since binding will create the controller
   late SubjectController subjectController;
 
@@ -36,14 +42,10 @@ class _SubjectScreenState extends State<SubjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(),));
-
-        return true;
-      },
+    return AdOnBackWrapper(
       child: Scaffold(
         backgroundColor: Theme.of(context).primaryColor,
+        bottomNavigationBar: const HybridBannerAdWidget(),
         body: Container(
           width: double.infinity,
 
@@ -65,11 +67,6 @@ class _SubjectScreenState extends State<SubjectScreen> {
                 backgroundColor: Theme.of(context).primaryColor,
                 title: TextData.homeTitle,
                 textColor: AppColors.backGroundColor,
-                back: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen(),));
-
-
-                },
               ).paddingSymmetric(horizontal: 15.h),
 
               Expanded(
@@ -90,9 +87,32 @@ class _SubjectScreenState extends State<SubjectScreen> {
                   child:  ListView.builder(
                     padding: EdgeInsets.symmetric(horizontal: 15.h),
 
-                    itemCount: subjectController.subjectList.length,
+                    itemCount: subjectController.subjectList.length +
+                        (subjectController.subjectList.length ~/ _adFrequency),
                     itemBuilder: (context, index) {
-                      var e = subjectController.subjectList[index];
+                      final bool isAdPosition =
+                          (index + 1) % (_adFrequency + 1) == 0;
+                      final int adIndex = index ~/ (_adFrequency + 1);
+
+                      if (isAdPosition &&
+                          adIndex <
+                              subjectController.subjectList.length ~/
+                                  _adFrequency) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 15.h),
+                          child: HybridNativeAdWidget(
+                            height: 200.h,
+                            smallHeight: 80.h,
+                            adKey: 'subject_native_$adIndex',
+                            margin: EdgeInsets.zero,
+                          ),
+                        );
+                      }
+
+                      // Ad slots are extra list positions, so map back to the
+                      // real subject index
+                      final int itemIndex = index - (index ~/ (_adFrequency + 1));
+                      var e = subjectController.subjectList[itemIndex];
                       return Obx(() => _buildMenuItem(e.button,subjectController.isTamil.value?e.tamilTitle:e.title, context, () async {
                         bool fromTamil = subjectController.isTamil.value;
                         String tableName = e.englishTable;
@@ -192,6 +212,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
 
     return GestureDetector(
       onTap: () async {
+        await showAdBeforeNavigation(context);
         function();
       },
 

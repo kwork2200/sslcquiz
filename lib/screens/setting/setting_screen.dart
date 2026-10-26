@@ -9,6 +9,8 @@ import 'package:sslcquiz/controller/setting/setting_controller.dart';
 import 'package:sslcquiz/controller/subject/subject_controller.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
 import '../../controller/theme/theme_controller.dart';
 import '../../data/app_data.dart';
 import '../../model/lesson_model.dart';
@@ -41,10 +43,12 @@ class _SettingScreenState extends State<SettingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<SettingController>(
+    return AdOnBackWrapper(
+      child: GetBuilder<SettingController>(
       init: SettingController(),
       builder: (controller) => Scaffold(
         backgroundColor: Theme.of(context).primaryColor,
+        bottomNavigationBar: const HybridBannerAdWidget(),
         body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -139,7 +143,7 @@ class _SettingScreenState extends State<SettingScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildMenuItem(String title, bool value, Function function) {

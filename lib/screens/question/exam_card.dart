@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/colors.dart';
 import '../../utils/constant.dart';
@@ -122,6 +123,20 @@ class ExamCard extends StatelessWidget {
               if (i != options.length - 1)
                 SizedBox(height: 1.h),
             ],
+
+            // Native ad below the answer options
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppDimensions.paddingMedium,
+                vertical: AppDimensions.paddingSmall,
+              ),
+              child: HybridNativeAdWidget(
+                height: 200.h,
+                smallHeight: 80.h,
+                adKey: 'question_native_ad',
+                margin: EdgeInsets.zero,
+              ),
+            ),
           ],
         ),
       ),

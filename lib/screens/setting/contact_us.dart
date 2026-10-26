@@ -8,8 +8,8 @@ import 'package:sslcquiz/widgets/spacing_widget.dart';
 
 import '../../utils/text_data.dart';
 
-class ContactUsScreen extends StatelessWidget {
-  const ContactUsScreen({Key? key}) : super(key: key);
+class PrivacyPolicyScreen extends StatelessWidget {
+  const PrivacyPolicyScreen({super.key});
 
 
   @override
@@ -58,8 +58,8 @@ This policy is effective as of August 13, 2025.
 
 8. Contact Us
 If you have any questions or suggestions about this Privacy Policy, please contact us at:
-Email: vichruth.victorious@gmail.com
-Phone: +91 7904815700
+Email: vaghasiyasanket36@gmail.com
+Phone: +91 97260 30303
 ''';
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,

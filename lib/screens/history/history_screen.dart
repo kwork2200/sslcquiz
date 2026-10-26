@@ -6,6 +6,9 @@ import 'package:sslcquiz/model/score_data.dart';
 import 'package:sslcquiz/screens/history/clear_history_dialog.dart';
 import 'package:sslcquiz/utils/text_data.dart';
 
+import '../../ads/ad_on_back_wrapper.dart';
+import '../../ads/hybrid_banner_ad_widget.dart';
+import '../../ads/hybrid_native_ad_widget.dart';
 import '../../data/database_helper.dart';
 
 import '../../utils/colors.dart';
@@ -22,6 +25,9 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  /// Show a native ad after every 2 history items
+  static const int _adFrequency = 2;
+
   String firstCharCaps(String msg) {
     if (msg.isEmpty) return "";
     return msg[0].toUpperCase() + msg.substring(1);
@@ -31,8 +37,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final db = DatabaseHelper();
 
-    return Scaffold(
+    return AdOnBackWrapper(
+      child: Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
+      bottomNavigationBar: const HybridBannerAdWidget(),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -126,9 +134,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       }
                       return ListView.builder(
                         shrinkWrap: true,
-                        itemCount: list.length,
+                        itemCount: list.length + (list.length ~/ _adFrequency),
                         itemBuilder: (context, index) {
-                          ScoreData e = list[index];
+                          final bool isAdPosition =
+                              (index + 1) % (_adFrequency + 1) == 0;
+                          final int adIndex = index ~/ (_adFrequency + 1);
+
+                          if (isAdPosition &&
+                              adIndex < list.length ~/ _adFrequency) {
+                            return HybridNativeAdWidget(
+                              height: 200.h,
+                              smallHeight: 80.h,
+                              adKey: 'history_native_$adIndex',
+                              margin: EdgeInsets.zero,
+                            );
+                          }
+
+                          // Ad slots are extra list positions, so map back to
+                          // the real history index
+                          final int itemIndex =
+                              index - (index ~/ (_adFrequency + 1));
+                          ScoreData e = list[itemIndex];
 
                           List<String> subjectArray = e.tableName.split("_");
                           String sub = firstCharCaps(subjectArray[1]);
@@ -277,6 +303,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

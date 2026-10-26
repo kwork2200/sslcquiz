@@ -56,14 +56,14 @@ class TextData {
   static String exit = "Exit?";
   static String no = "No";
   static String yes = "Yes";
-  static String welcomeQuiz = "Welcome to SSLC Quiz!";
+  static String welcomeQuiz = "Welcome to Quiz!";
   static String welcomeQuizDesc = "Please enter your name to get started";
   static String nameRequired = "Name Required";
   static String enterNameError = "Please enter your name to continue";
   static String noData = "No Data";
   static String previous = "Previous";
   static String next = "Next";
-  static String sslcQuiz = "SSLC Quiz!";
+  static String sslcQuiz = "Quiz!";
   static String enterName = "Please enter your name";
   static String nameDesc = "Enter your name";
   static String tamilMedium = "Tamil Medium";
